@@ -38,6 +38,7 @@ export default {
       hmacMandatory: false,
       whatsAppInboxAPIKey: '',
       whatsAppProviderUrl: '',
+      whatsAppProviderProxyUrl: '',
       showBaileysLinkDeviceModal: false,
       markAsRead: true,
     };
@@ -61,6 +62,8 @@ export default {
   methods: {
     setDefaults() {
       this.hmacMandatory = this.inbox.hmac_mandatory || false;
+      this.whatsAppProviderProxyUrl =
+        this.inbox.provider_config?.provider_proxy_url ?? '';
       this.markAsRead = this.inbox.provider_config.mark_as_read ?? true;
     },
     handleHmacFlag() {
@@ -109,6 +112,25 @@ export default {
             provider_config: {
               ...this.inbox.provider_config,
               provider_url: this.whatsAppProviderUrl,
+            },
+          },
+        };
+
+        await this.$store.dispatch('inboxes/updateInbox', payload);
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+      } catch (error) {
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+      }
+    },
+    async updateWhatsAppProviderProxyUrl() {
+      try {
+        const payload = {
+          id: this.inbox.id,
+          formData: false,
+          channel: {
+            provider_config: {
+              ...this.inbox.provider_config,
+              provider_proxy_url: this.whatsAppProviderProxyUrl,
             },
           },
         };
@@ -401,6 +423,38 @@ export default {
               whatsAppInboxAPIKey === inbox.provider_config.api_key
             "
             @click="updateWhatsAppInboxAPIKey"
+          >
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
+          </NextButton>
+        </div>
+      </SettingsSection>
+      <SettingsSection
+        :title="
+          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_PROXY_URL_TITLE')
+        "
+        :sub-title="
+          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_PROXY_URL_SUBHEADER')
+        "
+      >
+        <div
+          class="flex items-center justify-between flex-1 mt-2 whatsapp-settings--content"
+        >
+          <woot-input
+            v-model="whatsAppProviderProxyUrl"
+            type="text"
+            class="flex-1 mr-2 items-center"
+            :placeholder="
+              $t(
+                'INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_PROXY_URL_PLACEHOLDER'
+              )
+            "
+          />
+          <NextButton
+            :disabled="
+              whatsAppProviderProxyUrl ===
+              inbox.provider_config.provider_proxy_url
+            "
+            @click="updateWhatsAppProviderProxyUrl"
           >
             {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
           </NextButton>

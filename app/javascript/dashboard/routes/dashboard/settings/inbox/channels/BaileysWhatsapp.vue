@@ -27,6 +27,7 @@ export default {
       providerUrl: '',
       showAdvancedOptions: false,
       markAsRead: true,
+      providerProxyUrl: '',
     };
   },
   computed: {
@@ -41,6 +42,9 @@ export default {
         requiredIf: requiredIf(this.apiKey),
       },
       apiKey: { requiredIf: requiredIf(this.providerUrl) },
+      providerProxyUrl: {
+        isValidURL: value => !value || isValidURL(value),
+      },
     };
   },
   methods: {
@@ -53,6 +57,7 @@ export default {
       try {
         const providerConfig = {
           mark_as_read: this.markAsRead,
+          provider_proxy_url: this.providerProxyUrl || undefined,
         };
 
         if (this.apiKey || this.providerUrl) {
@@ -163,6 +168,22 @@ export default {
           />
           <span v-if="v$.apiKey.$error" class="message">
             {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.ERROR') }}
+          </span>
+        </label>
+      </div>
+
+      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
+        <label :class="{ error: v$.providerProxyUrl.$error }">
+          {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_PROXY_URL.LABEL') }}
+          <input
+            v-model="providerProxyUrl"
+            type="text"
+            :placeholder="
+              $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_PROXY_URL.PLACEHOLDER')
+            "
+          />
+          <span v-if="v$.providerProxyUrl.$error" class="message">
+            {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_PROXY_URL.ERROR') }}
           </span>
         </label>
       </div>

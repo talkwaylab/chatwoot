@@ -272,6 +272,12 @@
         "MARK_AS_READ": {
           "LABEL": "Send read receipts"
         },
+        "PROVIDER_PROXY_URL": {
+          "LABEL": "Provider Proxy URL",
+          "SUBTITLE": "Configure the URL of the proxy server for the provider.",
+          "PLACEHOLDER": "Provider Proxy URL",
+          "ERROR": "Please enter a valid URL."
+        },
         "ADVANCED_OPTIONS": "Advanced options",
         "BAILEYS": {
           "SUBTITLE": "Click below to setup the WhatsApp channel using Baileys.",
@@ -562,6 +568,10 @@
       "WHATSAPP_PROVIDER_URL_PLACEHOLDER": "Enter the provider URL",
       "WHATSAPP_PROVIDER_URL_ERROR": "Please enter a valid URL",
       "UPDATE_PRE_CHAT_FORM_SETTINGS": "Update Pre Chat Form Settings",
+      "WHATSAPP_PROVIDER_PROXY_URL_TITLE": "Provider Proxy URL",
+      "WHATSAPP_PROVIDER_PROXY_URL_SUBHEADER": "The proxy URL to be used to connect to the WhatsApp provider.",
+      "WHATSAPP_PROVIDER_PROXY_URL_PLACEHOLDER": "Enter the provider proxy URL",
+      "WHATSAPP_PROVIDER_PROXY_URL_ERROR": "Please enter a valid URL",
       "WHATSAPP_MARK_AS_READ_TITLE": "Read receipts",
       "WHATSAPP_MARK_AS_READ_SUBHEADER": "If turned off, when a message is viewed in Chatwoot, a read receipt will not be sent to the sender. Your messages will still be able to receive read receipts from the sender.",
       "WHATSAPP_MARK_AS_READ_LABEL": "Send read receipts"
