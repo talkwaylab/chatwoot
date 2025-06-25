@@ -28,13 +28,13 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
   end
 
   def create_contact(contact)
-    phone_number_from_jid = phone_number_from_jid(contact[:id])
-    name = contact[:verifiedName].presence || contact[:name].presence || phone_number_from_jid
+    phone_number = phone_number_from_jid(contact[:id])
+    name = contact[:verifiedName].presence || contact[:name].presence || phone_number
     ::ContactInboxWithContactBuilder.new(
       # FIXME: update the source_id to complete jid in future
-      source_id: phone_number_from_jid,
+      source_id: phone_number,
       inbox: inbox,
-      contact_attributes: { name: name, phone_number: "+#{phone_number_from_jid}" }
+      contact_attributes: { name: name, phone_number: "+#{phone_number}" }
     ).perform
   end
 
