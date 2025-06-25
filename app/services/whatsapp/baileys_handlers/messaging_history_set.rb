@@ -189,14 +189,14 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
 
   def history_handle_attach_media(message, conversation, raw_message)
     attachment_file = history_download_attachment_file(conversation, raw_message)
-    history_message_type = history_message_type(raw_message[:message])
-    file_type = history_file_content_type(history_message_type).to_s
-    history_message_mimetype = history_message_mimetype(history_message_type, raw_message)
+    message_type = history_message_type(raw_message[:message])
+    file_type = history_file_content_type(message_type).to_s
+    message_mimetype = history_message_mimetype(message_type, raw_message)
     attachment = message.attachments.build(
       account_id: message.account_id,
       file_type: file_type,
-      file: { io: attachment_file, history_filename: history_filename(raw_message, history_message_mimetype, file_type),
-              content_type: history_message_mimetype }
+      file: { io: attachment_file, history_filename: history_filename(raw_message, message_mimetype, file_type),
+              content_type: message_mimetype }
     )
     attachment.meta = { is_recorded_audio: true } if raw_message.dig(:message, :audioMessage, :ptt)
   rescue Down::Error => e
@@ -209,10 +209,10 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     Down.download(conversation.inbox.channel.media_url(raw_message.dig(:key, :id)), headers: conversation.inbox.channel.api_headers)
   end
 
-  def history_file_content_type(history_message_type)
-    return :image if history_message_type.in?(%w[image sticker])
-    return :video if history_message_type.in?(%w[video video_note])
-    return :audio if history_message_type == 'audio'
+  def history_file_content_type(message_type)
+    return :image if message_type.in?(%w[image sticker])
+    return :video if message_type.in?(%w[video video_note])
+    return :audio if message_type == 'audio'
 
     :file
   end
@@ -225,7 +225,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     "#{file_content_type}_#{raw_message[:key][:id]}_#{Time.current.strftime('%Y%m%d')}#{ext}"
   end
 
-  def history_message_mimetype(history_message_type, raw_message)
+  def history_message_mimetype(message_type, raw_message)
     {
       'image' => raw_message.dig(:message, :imageMessage, :mimetype),
       'sticker' => raw_message.dig(:message, :stickerMessage, :mimetype),
@@ -233,6 +233,6 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
       'audio' => raw_message.dig(:message, :audioMessage, :mimetype),
       'file' => raw_message.dig(:message, :documentMessage, :mimetype).presence ||
         raw_message.dig(:message, :documentWithCaptionMessage, :message, :documentMessage, :mimetype)
-    }[history_message_type]
+    }[message_type]
   end
 end
