@@ -220,12 +220,12 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     :file
   end
 
-  def history_filename(raw_message, history_message_mimetype, history_file_content_type)
-    history_filename = raw_message.dig[:message][:documentMessage][:history_filename]
-    return history_filename if history_filename.present?
+  def history_filename(raw_message, message_mimetype, file_content_type)
+    filename = raw_message[:message][:documentMessage][:history_filename]
+    return filename if filename.present?
 
-    ext = ".#{history_message_mimetype.split(';').first.split('/').last}" if history_message_mimetype.present?
-    "#{history_file_content_type}_#{raw_message[:key][:id]}_#{Time.current.strftime('%Y%m%d')}#{ext}"
+    ext = ".#{message_mimetype.split(';').first.split('/').last}" if message_mimetype.present?
+    "#{file_content_type}_#{raw_message[:key][:id]}_#{Time.current.strftime('%Y%m%d')}#{ext}"
   end
 
   def history_message_mimetype(history_message_type, raw_message)
