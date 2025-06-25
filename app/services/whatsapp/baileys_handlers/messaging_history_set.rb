@@ -205,7 +205,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
   rescue Down::Error => e
     message.update!(is_unsupported: true)
 
-    Rails.logger.error "Failed to download attachment for message #{raw_message_id}: #{e.message}"
+    Rails.logger.error "Failed to download attachment for message #{raw_message[:key][:id]}: #{e.message}"
   end
 
   def history_download_attachment_file(conversation, raw_message)
