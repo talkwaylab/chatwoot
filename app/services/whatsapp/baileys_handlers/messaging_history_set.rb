@@ -135,7 +135,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
       status: process_status(raw_message[:status]) || 'sent'
     )
 
-    history_handle_attach_media(conversation, message, raw_message) if history_message_type(raw_message[:message]).in?(%w[image file video audio
+    history_handle_attach_media(message, conversation, raw_message) if history_message_type(raw_message[:message]).in?(%w[image file video audio
                                                                                                                           sticker])
 
     message.save!
