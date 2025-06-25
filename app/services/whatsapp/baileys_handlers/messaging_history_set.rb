@@ -1,7 +1,4 @@
 module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/ModuleLength
-  # include Whatsapp::BaileysHandlers::Helpers
-  # include BaileysHelper
-
   private
 
   def process_messaging_history_set
