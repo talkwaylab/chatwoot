@@ -12,7 +12,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
 
     messages = params.dig(:data, :messages) || []
     messages.each do |message|
-      handle_message(message)
+      history_handle_message(message)
     end
   end
 
@@ -23,12 +23,12 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
   end
 
   # TODO: Refactor this method in helpers to receive the jid as an argument and remove it from here
-  def phone_number_from_jid(jid)
+  def history_phone_number_from_jid(jid)
     jid.split('@').first.split(':').first.split('_').first
   end
 
   def create_contact(contact)
-    phone_number = phone_number_from_jid(contact[:id])
+    phone_number = history_phone_number_from_jid(contact[:id])
     name = contact[:verifiedName].presence || contact[:name].presence || phone_number
     ::ContactInboxWithContactBuilder.new(
       # FIXME: update the source_id to complete jid in future
@@ -38,30 +38,30 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     ).perform
   end
 
-  def handle_message(raw_message)
+  def history_handle_message(raw_message)
     jid = raw_message[:key][:remoteJid]
     return unless jid_user?(jid)
 
     id = raw_message[:key][:id]
-    return if message_type(raw_message[:message]).in?(%w[protocol context unsupported])
-    return if find_message_by_source_id(id) || message_under_process?(id)
+    return if history_message_type(raw_message[:message]).in?(%w[protocol context unsupported])
+    return if history_find_message_by_source_id(id) || history_message_under_process?(id)
 
-    cache_message_source_id_in_redis(id)
+    history_cache_message_source_id_in_redis(id)
     contact_inbox = find_contact_inbox(jid)
 
     unless contact_inbox.contact
-      clear_message_source_id_from_redis(id)
+      history_clear_message_source_id_from_redis(id)
 
       Rails.logger.warn "Contact not found for message: #{id}"
       return
     end
 
-    create_message(raw_message, contact_inbox)
-    clear_message_source_id_from_redis(id)
+    history_create_message(raw_message, contact_inbox)
+    history_clear_message_source_id_from_redis(id)
   end
 
   # TODO: Refactor this method in helpers to receive the raw message as an argument and remove it from here
-  def message_type(message_content) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity,Metrics/MethodLength
+  def history_message_type(message_content) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity,Metrics/MethodLength
     if message_content.key?(:conversation) || message_content.dig(:extendedTextMessage, :text).present?
       'text'
     elsif message_content.key?(:imageMessage)
@@ -87,14 +87,15 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     end
   end
 
-  def find_message_by_source_id(source_id)
+  # TODO: Remove this method when include helpers in this module, after update the methods to receive arguments
+  def history_find_message_by_source_id(source_id)
     return unless source_id
 
     Message.find_by(source_id: source_id).presence
   end
 
   def find_contact_inbox(jid)
-    phone_number = phone_number_from_jid(jid)
+    phone_number = history_phone_number_from_jid(jid)
     ::ContactInboxWithContactBuilder.new(
       # FIXME: update the source_id to complete jid in future
       source_id: phone_number
@@ -102,24 +103,24 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
   end
 
   # TODO: Refactor this method in helpers to receive the source_id as an argument and remove it from here
-  def message_under_process?(source_id)
+  def history_message_under_process?(source_id)
     key = format(Redis::RedisKeys::MESSAGE_SOURCE_KEY, id: source_id)
     Redis::Alfred.get(key)
   end
 
   # TODO: Refactor this method in helpers to receive the source_id as an argument and remove it from here
-  def cache_message_source_id_in_redis(source_id)
+  def history_cache_message_source_id_in_redis(source_id)
     key = format(Redis::RedisKeys::MESSAGE_SOURCE_KEY, id: source_id)
     ::Redis::Alfred.setex(key, true)
   end
 
   # TODO: Refactor this method in helpers to receive the source_id as an argument and remove it from here
-  def clear_message_source_id_from_redis(source_id)
+  def history_clear_message_source_id_from_redis(source_id)
     key = format(Redis::RedisKeys::MESSAGE_SOURCE_KEY, id: source_id)
     ::Redis::Alfred.delete(key)
   end
 
-  def create_message(raw_message, contact_inbox) # rubocop:disable Metrics/AbcSize
+  def history_create_message(raw_message, contact_inbox) # rubocop:disable Metrics/AbcSize
     conversation = get_conversation(contact_inbox)
     inbox = contact_inbox.inbox
     message = conversation.messages.build(
@@ -127,14 +128,15 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
       account_id: inbox.account_id,
       inbox_id: inbox.id,
       source_id: raw_message[:key][:id],
-      sender: incoming?(raw_message) ? contact_inbox.contact : inbox.account.account_users.first.user,
-      sender_type: incoming?(raw_message) ? 'Contact' : 'User',
-      message_type: incoming?(raw_message) ? :incoming : :outgoing,
-      content_attributes: message_content_attributes(raw_message),
+      sender: history_incoming?(raw_message) ? contact_inbox.contact : inbox.account.account_users.first.user,
+      sender_type: history_incoming?(raw_message) ? 'Contact' : 'User',
+      history_message_type: history_incoming?(raw_message) ? :incoming : :outgoing,
+      content_attributes: history_message_content_attributes(raw_message),
       status: process_status(raw_message[:status]) || 'sent'
     )
 
-    handle_attach_media(conversation, message, raw_message) if message_type(raw_message[:message]).in?(%w[image file video audio sticker])
+    history_handle_attach_media(conversation, message, raw_message) if history_message_type(raw_message[:message]).in?(%w[image file video audio
+                                                                                                                          sticker])
 
     message.save!
   end
@@ -158,7 +160,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
   end
 
   # TODO: Refactor this method in helpers to receive the raw message as an argument and remove it from here
-  def incoming?(raw_message)
+  def history_incoming?(raw_message)
     !raw_message[:key][:fromMe]
   end
 
@@ -173,10 +175,10 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
       raw_message.dig(:message, :reactionMessage, :text)
   end
 
-  def message_content_attributes(raw_message)
+  def history_message_content_attributes(raw_message)
     {
       external_created_at: baileys_extract_message_timestamp(raw_message[:messageTimestamp]),
-      is_unsupported: message_type(raw_message[:message]) == 'unsupported' ? true : nil
+      is_unsupported: history_message_type(raw_message[:message]) == 'unsupported' ? true : nil
     }.compact
   end
 
@@ -188,15 +190,16 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     }[status]
   end
 
-  def handle_attach_media(message, conversation, raw_message)
-    attachment_file = download_attachment_file(conversation, raw_message)
-    message_type = message_type(raw_message[:message])
-    file_type = file_content_type(message_type).to_s
-    message_mimetype = message_mimetype(message_type, raw_message)
+  def history_handle_attach_media(message, conversation, raw_message)
+    attachment_file = history_download_attachment_file(conversation, raw_message)
+    history_message_type = history_message_type(raw_message[:message])
+    file_type = history_file_content_type(history_message_type).to_s
+    history_message_mimetype = history_message_mimetype(history_message_type, raw_message)
     attachment = message.attachments.build(
       account_id: message.account_id,
       file_type: file_type,
-      file: { io: attachment_file, filename: filename(raw_message, message_mimetype, file_type), content_type: message_mimetype }
+      file: { io: attachment_file, history_filename: history_filename(raw_message, history_message_mimetype, file_type),
+              content_type: history_message_mimetype }
     )
     attachment.meta = { is_recorded_audio: true } if raw_message.dig(:message, :audioMessage, :ptt)
   rescue Down::Error => e
@@ -205,27 +208,27 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     Rails.logger.error "Failed to download attachment for message #{raw_message_id}: #{e.message}"
   end
 
-  def download_attachment_file(conversation, raw_message)
+  def history_download_attachment_file(conversation, raw_message)
     Down.download(conversation.inbox.channel.media_url(raw_message.dig(:key, :id)), headers: conversation.inbox.channel.api_headers)
   end
 
-  def file_content_type(message_type)
-    return :image if message_type.in?(%w[image sticker])
-    return :video if message_type.in?(%w[video video_note])
-    return :audio if message_type == 'audio'
+  def history_file_content_type(history_message_type)
+    return :image if history_message_type.in?(%w[image sticker])
+    return :video if history_message_type.in?(%w[video video_note])
+    return :audio if history_message_type == 'audio'
 
     :file
   end
 
-  def filename(raw_message, message_mimetype, file_content_type)
-    filename = raw_message.dig[:message][:documentMessage][:fileName]
-    return filename if filename.present?
+  def history_filename(raw_message, history_message_mimetype, history_file_content_type)
+    history_filename = raw_message.dig[:message][:documentMessage][:history_filename]
+    return history_filename if history_filename.present?
 
-    ext = ".#{message_mimetype.split(';').first.split('/').last}" if message_mimetype.present?
-    "#{file_content_type}_#{raw_message[:key][:id]}_#{Time.current.strftime('%Y%m%d')}#{ext}"
+    ext = ".#{history_message_mimetype.split(';').first.split('/').last}" if history_message_mimetype.present?
+    "#{history_file_content_type}_#{raw_message[:key][:id]}_#{Time.current.strftime('%Y%m%d')}#{ext}"
   end
 
-  def message_mimetype(message_type, raw_message)
+  def history_message_mimetype(history_message_type, raw_message)
     {
       'image' => raw_message.dig(:message, :imageMessage, :mimetype),
       'sticker' => raw_message.dig(:message, :stickerMessage, :mimetype),
@@ -233,6 +236,6 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
       'audio' => raw_message.dig(:message, :audioMessage, :mimetype),
       'file' => raw_message.dig(:message, :documentMessage, :mimetype).presence ||
         raw_message.dig(:message, :documentWithCaptionMessage, :message, :documentMessage, :mimetype)
-    }[message_type]
+    }[history_message_type]
   end
 end
