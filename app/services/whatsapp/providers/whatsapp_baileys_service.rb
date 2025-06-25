@@ -171,7 +171,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     process_response(response)
   end
 
-  def fetch_message_history(oldest_message)
+  def fetch_message_history(phone_number, oldest_message)
     @phone_number = phone_number
 
     response = HTTParty.post(
