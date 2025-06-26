@@ -134,7 +134,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
       source_id: raw_message[:key][:id],
       sender: history_incoming?(raw_message) ? contact_inbox.contact : inbox.account.account_users.first.user,
       sender_type: history_incoming?(raw_message) ? 'Contact' : 'User',
-      history_message_type: history_incoming?(raw_message) ? :incoming : :outgoing,
+      message_type: history_incoming?(raw_message) ? :incoming : :outgoing,
       content_attributes: history_message_content_attributes(raw_message),
       status: process_status(raw_message[:status]) || 'sent'
     )
@@ -202,7 +202,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     attachment = message.attachments.build(
       account_id: message.account_id,
       file_type: file_type,
-      file: { io: attachment_file, history_filename: history_filename(raw_message, message_mimetype, file_type),
+      file: { io: attachment_file, filename: history_filename(raw_message, message_mimetype, file_type),
               content_type: message_mimetype }
     )
     attachment.meta = { is_recorded_audio: true } if raw_message.dig(:message, :audioMessage, :ptt)
