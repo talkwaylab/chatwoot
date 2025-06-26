@@ -1,11 +1,17 @@
 module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/ModuleLength
   private
 
-  def process_messaging_history_set
-    contacts = params.dig(:data, :contacts) || []
-    contacts.each do |contact|
-      create_contact(contact) if jid_user?(contact[:id])
+  def process_messaging_history_set # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+    provider_config = inbox.channel.provider_config
+
+    if provider_config['sync_contacts'].presence || provider_config['sync_full_history'].presence
+      contacts = params.dig(:data, :contacts) || []
+      contacts.each do |contact|
+        create_contact(contact) if jid_user?(contact[:id])
+      end
     end
+
+    return unless provider_config['sync_full_history']
 
     messages = params.dig(:data, :messages) || []
     messages.each do |message|
