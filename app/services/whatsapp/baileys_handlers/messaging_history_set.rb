@@ -121,7 +121,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     conversation = get_conversation(contact_inbox)
     inbox = contact_inbox.inbox
     message = conversation.messages.build(
-      content: message_content(raw_message[:message]),
+      content: history_message_content(raw_message[:message]),
       account_id: inbox.account_id,
       inbox_id: inbox.id,
       source_id: raw_message[:key][:id],
@@ -162,7 +162,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
   end
 
   # TODO: Refactor this method in helpers to receive the raw message as an argument and remove it from here
-  def message_content(raw_message)
+  def history_message_content(raw_message)
     raw_message.dig(:message, :conversation) ||
       raw_message.dig(:message, :extendedTextMessage, :text) ||
       raw_message.dig(:message, :imageMessage, :caption) ||
