@@ -8,22 +8,9 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
   DEFAULT_URL = ENV.fetch('BAILEYS_PROVIDER_DEFAULT_URL', nil)
   DEFAULT_API_KEY = ENV.fetch('BAILEYS_PROVIDER_DEFAULT_API_KEY', nil)
 
-  def setup_channel_provider # rubocop:disable Metrics/MethodLength
+  def setup_channel_provider
     provider_config = whatsapp_channel.provider_config
-    sync_contacts = provider_config['sync_contacts'].presence
-    sync_history = provider_config['sync_full_history'].presence
-    perform_initial_sync = sync_contacts || sync_history
 
-    # NOTE: After the initial setup on inbox creation, reset the flags and set the sync type for messages_history.set incoming event.
-    if perform_initial_sync
-      sync_type = sync_contacts ? 'contacts' : 'full_history'
-      config_updates = {
-        'sync_contacts' => false,
-        'sync_full_history' => false,
-        'sync_type' => sync_type
-      }
-      whatsapp_channel.update!(provider_config: provider_config.merge(config_updates))
-    end
     response = HTTParty.post(
       "#{provider_url}/connections/#{whatsapp_channel.phone_number}",
       headers: api_headers,
@@ -33,7 +20,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
         webhookVerifyToken: provider_config['webhook_verify_token'],
         # TODO: Remove on Baileys v2, default will be false
         includeMedia: false,
-        syncFullHistory: perform_initial_sync
+        syncFullHistory: provider_config['sync_contacts'].presence || provider_config['sync_full_history'].presence
       }.compact.to_json
     )
 
