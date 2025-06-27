@@ -114,7 +114,8 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     ::ContactInboxWithContactBuilder.new(
       # FIXME: update the source_id to complete jid in future
       source_id: phone_number,
-      inbox: inbox
+      inbox: inbox,
+      contact_attributes: { name: phone_number, phone_number: "+#{phone_number}" }
     ).perform
   end
 
