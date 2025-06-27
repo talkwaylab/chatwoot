@@ -192,7 +192,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
   def history_message_content_attributes(raw_message)
     {
       external_created_at: baileys_extract_message_timestamp(raw_message[:messageTimestamp]),
-      is_unsupported: history_message_type(raw_message[:message]) == 'unsupported' ? true : nil
+      is_unsupported: history_message_type(raw_message[:message]).in?(%w[image file video audio sticker unsupported]) || nil
     }.compact
   end
 
