@@ -51,7 +51,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     ).perform
   end
 
-  def history_handle_message(raw_message)
+  def history_handle_message(raw_message) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
     return unless raw_message[:key].present? && raw_message[:message].present? && raw_message[:messageTimestamp].present?
 
     jid = raw_message[:key][:remoteJid]
