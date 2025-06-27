@@ -8,15 +8,25 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
       contacts = params.dig(:data, :contacts) || []
       contacts.each do |contact|
         create_contact(contact) if jid_user?(contact[:id])
+      rescue StandardError => e
+        Rails.logger.error "Error processing contact: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
       end
     end
 
     return unless provider_config['sync_full_history']
 
+    has_created_new_message = false
     messages = params.dig(:data, :messages) || []
     messages.each do |message|
       history_handle_message(message)
+      has_created_new_message = true
+    rescue StandardError => e
+      Rails.logger.error "Error processing message: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
     end
+
+    inbox.channel.fetch_message_history if has_created_new_message
   end
 
   # TODO: Refactor jid_type method in helpers to receive the jid as an argument and use it here
