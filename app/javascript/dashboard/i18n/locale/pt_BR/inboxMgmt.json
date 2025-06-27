@@ -274,7 +274,7 @@
         },
         "SYNC_FULL_HISTORY": {
           "ONLY_CONTACTS_LABEL": "Sincronizar apenas contatos",
-          "LABEL": "Sincronizar mensagens e contatos"
+          "LABEL": "Sincronizar contatos e mensagens"
         },
         "ADVANCED_OPTIONS": "Opções avançadas",
         "BAILEYS": {
