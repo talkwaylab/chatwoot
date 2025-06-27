@@ -136,11 +136,11 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     ::Redis::Alfred.delete(key)
   end
 
-  def history_create_message(raw_message, contact_inbox) # rubocop:disable Metrics/AbcSize
+  def history_create_message(raw_message, contact_inbox)
     conversation = get_conversation(contact_inbox)
     inbox = contact_inbox.inbox
     message = conversation.messages.build(
-      content: history_message_content(raw_message[:message]),
+      content: history_message_content(raw_message),
       account_id: inbox.account_id,
       inbox_id: inbox.id,
       source_id: raw_message[:key][:id],
@@ -150,9 +150,6 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
       content_attributes: history_message_content_attributes(raw_message),
       status: process_status(raw_message[:status]) || 'sent'
     )
-
-    history_handle_attach_media(message, conversation, raw_message) if history_message_type(raw_message[:message]).in?(%w[image file video audio
-                                                                                                                          sticker])
 
     message.save!
   end
