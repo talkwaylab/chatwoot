@@ -165,7 +165,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
       "#{provider_url}/connections/#{whatsapp_channel.phone_number}/fetch-message-history",
       headers: api_headers,
       body: {
-        count: ENV.fetch('BAILEYS_MESSAGE_HISTORY_COUNT', 50).to_i,
+        count: ENV.fetch('BAILEYS_MESSAGE_HISTORY_COUNT', 5).to_i,
         oldestMsgKey: { id: oldest_message.source_id, remoteJid: remote_jid, fromMe: oldest_message.message_type == 'outgoing' },
         oldestMsgTimestamp: oldest_message.content_attributes[:external_created_at]
       }
