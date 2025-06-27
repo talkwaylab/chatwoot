@@ -568,14 +568,7 @@
       "UPDATE_PRE_CHAT_FORM_SETTINGS": "Update Pre Chat Form Settings",
       "WHATSAPP_MARK_AS_READ_TITLE": "Read receipts",
       "WHATSAPP_MARK_AS_READ_SUBHEADER": "If turned off, when a message is viewed in Chatwoot, a read receipt will not be sent to the sender. Your messages will still be able to receive read receipts from the sender.",
-      "WHATSAPP_MARK_AS_READ_LABEL": "Send read receipts",
-
-      "WHATSAPP_FETCH_MESSAGES_AND_CONTACTS_TITLE": "Sync messages and contacts",
-      "WHATSAPP_FETCH_MESSAGES_AND_CONTACTS_SUBHEADER": "It will restore your messages and contacts from the WhatsApp.",
-      "WHATSAPP_FETCH_MESSAGES_AND_CONTACTS_LABEL": "Sync messages and contacts",
-      "WHATSAPP_FETCH_CONTACTS_TITLE": "Sync contacts",
-      "WHATSAPP_FETCH_CONTACTS_SUBHEADER": "It will restore your contacts from the WhatsApp.",
-      "WHATSAPP_FETCH_CONTACTS_LABEL": "Sync contacts"
+      "WHATSAPP_MARK_AS_READ_LABEL": "Send read receipts"
     },
     "HELP_CENTER": {
       "LABEL": "Help Center",
