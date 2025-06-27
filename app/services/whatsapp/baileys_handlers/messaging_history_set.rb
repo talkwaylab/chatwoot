@@ -1,7 +1,7 @@
 module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/ModuleLength
   private
 
-  def process_messaging_history_set # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+  def process_messaging_history_set # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity,Metrics/AbcSize,Metrics/MethodLength
     provider_config = inbox.channel.provider_config
 
     if provider_config['sync_contacts'].presence || provider_config['sync_full_history'].presence
@@ -42,6 +42,8 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
   end
 
   def history_handle_message(raw_message)
+    return unless raw_message[:key].present? && raw_message[:message].present? && raw_message[:messageTimestamp].present?
+
     jid = raw_message[:key][:remoteJid]
     return unless jid_user?(jid)
 
