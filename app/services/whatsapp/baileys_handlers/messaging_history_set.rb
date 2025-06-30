@@ -129,10 +129,10 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     Redis::Alfred.get(key)
   end
 
-  # TODO: Refactor this method in helpers to receive the source_id as an argument and remove it from here
+  # TODO: Refactor this method in helpers to receive the source_id as an argument and deprecate setex, then remove it from here
   def history_cache_message_source_id_in_redis(source_id)
     key = format(Redis::RedisKeys::MESSAGE_SOURCE_KEY, id: source_id)
-    ::Redis::Alfred.setex(key, true)
+    ::Redis::Alfred.set(key, true, nx: true, ex: 1.day)
   end
 
   # TODO: Refactor this method in helpers to receive the source_id as an argument and remove it from here
