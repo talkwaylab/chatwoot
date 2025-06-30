@@ -43,8 +43,10 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
   end
 
   def create_contact(contact)
+    return if contact[:id].blank?
+
     phone_number = history_phone_number_from_jid(contact[:id])
-    name = contact[:verifiedName].presence || contact[:name].presence || phone_number
+    name = contact[:verifiedName].presence || contact[:notify].presence || contact[:name].presence || phone_number
     ::ContactInboxWithContactBuilder.new(
       # FIXME: update the source_id to complete jid in future
       source_id: phone_number,
