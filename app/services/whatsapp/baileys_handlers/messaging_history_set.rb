@@ -1,7 +1,7 @@
 module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/ModuleLength
   private
 
-  def process_messaging_history_set # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity,Metrics/AbcSize,Metrics/MethodLength
+  def process_messaging_history_set # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity,Metrics/AbcSize
     provider_config = inbox.channel.provider_config
 
     if provider_config['sync_contacts'].presence || provider_config['sync_full_history'].presence
@@ -16,17 +16,19 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
 
     return unless provider_config['sync_full_history']
 
-    has_created_new_message = false
+    oldest_message = nil
     messages = params.dig(:data, :messages) || []
     messages.each do |message|
       history_handle_message(message)
-      has_created_new_message = true
-    rescue StandardError => e
-      Rails.logger.error "Error processing message: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
+
+      message_timestamp = baileys_extract_message_timestamp(message[:messageTimestamp])
+      old_timestamp = baileys_extract_message_timestamp(oldest_message[:messageTimestamp]) if oldest_message
+      oldest_message = message if oldest_message.nil? || message_timestamp < old_timestamp
     end
 
-    inbox.channel.fetch_message_history if has_created_new_message
+    # return if oldest_message.blank? || baileys_extract_message_timestamp(oldest_message[:messageTimestamp]) < 3.months.ago.to_i
+
+    # inbox.channel.fetch_message_history(oldest_message)
   end
 
   # TODO: Refactor jid_type method in helpers to receive the jid as an argument and use it here
@@ -141,6 +143,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     conversation = get_conversation(contact_inbox)
     inbox = contact_inbox.inbox
     message = conversation.messages.build(
+      skip_prevent_message_flooding: true,
       content: history_message_content(raw_message),
       account_id: inbox.account_id,
       inbox_id: inbox.id,
@@ -149,7 +152,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
       sender_type: history_incoming?(raw_message) ? 'Contact' : 'User',
       message_type: history_incoming?(raw_message) ? :incoming : :outgoing,
       content_attributes: history_message_content_attributes(raw_message),
-      status: process_status(raw_message[:status]) || 'sent'
+      status: 'read'
     )
 
     message.save!

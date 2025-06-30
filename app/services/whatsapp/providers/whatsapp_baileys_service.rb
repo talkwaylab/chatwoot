@@ -159,15 +159,17 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
   end
 
   def fetch_message_history(oldest_message)
-    @phone_number = oldest_message.conversation.contact.phone_number
-
     response = HTTParty.post(
       "#{provider_url}/connections/#{whatsapp_channel.phone_number}/fetch-message-history",
       headers: api_headers,
       body: {
-        count: ENV.fetch('BAILEYS_MESSAGE_HISTORY_COUNT', 5).to_i,
-        oldestMsgKey: { id: oldest_message.source_id, remoteJid: remote_jid, fromMe: oldest_message.message_type == 'outgoing' },
-        oldestMsgTimestamp: oldest_message.content_attributes[:external_created_at].to_i
+        count: ENV.fetch('BAILEYS_MESSAGE_HISTORY_COUNT', 50).to_i,
+        oldestMsgKey: {
+          id: oldest_message[:key][:id],
+          remoteJid: oldest_message[:key][:remoteJid],
+          fromMe: oldest_message[:key][:fromMe]
+        },
+        oldestMsgTimestamp: oldest_message[:messageTimestamp]
       }
     )
 
