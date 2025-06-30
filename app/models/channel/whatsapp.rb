@@ -117,14 +117,8 @@ class Channel::Whatsapp < ApplicationRecord
     provider_service.received_messages(conversation.contact.phone_number, messages)
   end
 
-  def fetch_message_history
+  def fetch_message_history(oldest_message)
     return unless provider_service.respond_to?(:fetch_message_history)
-
-    oldest_message = inbox.messages
-                          .where(message_type: %w[incoming outgoing])
-                          .order(Arel.sql("CAST(content_attributes->>'external_created_at' AS BIGINT) ASC"))
-                          .first
-    return unless oldest_message&.content_attributes&.dig('external_created_at')
 
     provider_service.fetch_message_history(oldest_message)
   end
