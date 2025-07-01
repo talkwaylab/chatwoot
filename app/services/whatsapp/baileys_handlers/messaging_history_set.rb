@@ -59,7 +59,7 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     return unless jid_user?(jid)
 
     id = raw_message[:key][:id]
-    return if history_message_type(raw_message[:message]).in?(%w[protocol context unsupported])
+    return if history_message_type(raw_message[:message]).in?(%w[protocol context])
     return if history_find_message_by_source_id(id) || history_message_under_process?(id)
 
     history_cache_message_source_id_in_redis(id)
