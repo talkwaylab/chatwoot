@@ -7,10 +7,9 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     if provider_config['sync_contacts'].presence || provider_config['sync_full_history'].presence
       contacts = params.dig(:data, :contacts) || []
       contacts.each do |contact|
+        next if contact[:id].blank?
+
         create_contact(contact) if jid_user?(contact[:id])
-      rescue StandardError => e
-        Rails.logger.error "Error processing contact: #{e.message}"
-        Rails.logger.error e.backtrace.join("\n")
       end
     end
 
@@ -43,8 +42,6 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
   end
 
   def create_contact(contact)
-    return if contact[:id].blank?
-
     phone_number = history_phone_number_from_jid(contact[:id])
     name = contact[:verifiedName].presence || contact[:notify].presence || contact[:name].presence || phone_number
     ::ContactInboxWithContactBuilder.new(
