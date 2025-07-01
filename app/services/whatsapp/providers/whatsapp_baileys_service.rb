@@ -170,7 +170,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
           fromMe: oldest_message[:key][:fromMe]
         },
         oldestMsgTimestamp: oldest_message[:messageTimestamp]
-      }
+      }.to_json
     )
 
     process_response(response)

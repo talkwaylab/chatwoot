@@ -484,6 +484,34 @@ describe Whatsapp::Providers::WhatsappBaileysService do
     end
   end
 
+  describe '#fetch_message_history' do
+    it 'send fetch message history request' do
+      message = {
+        key: { id: 'msg_123',  remoteJid: test_send_jid,  fromMe: false },
+        messageTimestamp: 123
+      }
+      allow(ENV).to receive(:fetch).and_call_original
+      allow(ENV).to receive(:fetch).with('BAILEYS_MESSAGE_HISTORY_COUNT', 50).and_return(50)
+      stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}/fetch-message-history")
+        .with(
+          headers: stub_headers(whatsapp_channel),
+          body: {
+            count: 50,
+            oldestMsgKey: {
+              id: 'msg_123',
+              remoteJid: test_send_jid,
+              fromMe: false
+            },
+            oldestMsgTimestamp: 123
+          }.to_json
+        ).to_return(status: 200)
+
+      result = service.fetch_message_history(message)
+
+      expect(result).to be(true)
+    end
+  end
+
   describe '#received_messages' do
     it 'send received messages request' do
       stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}/send-receipts")
