@@ -163,10 +163,11 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
 
     # NOTE: if lock to single conversation is disabled, create a new conversation if previous conversation is resolved
     return contact_inbox.conversations.where.not(status: :resolved).last.presence ||
-           ::Conversation.create!(conversation_params(contact_inbox))
+           ::Conversation.create!(history_conversation_params(contact_inbox))
   end
 
-  def conversation_params(contact_inbox)
+  # TODO: Refactor this method in helpers to receive the contact_inbox as an argument and remove it from here
+  def history_conversation_params(contact_inbox)
     {
       account_id: contact_inbox.inbox.account_id,
       inbox_id: contact_inbox.inbox.id,
