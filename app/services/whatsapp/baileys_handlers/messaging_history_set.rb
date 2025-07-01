@@ -1,16 +1,14 @@
 module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/ModuleLength
   private
 
-  def process_messaging_history_set # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+  def process_messaging_history_set # rubocop:disable Metrics/CyclomaticComplexity
     provider_config = inbox.channel.provider_config
 
-    if provider_config['sync_contacts'].presence || provider_config['sync_full_history'].presence
-      contacts = params.dig(:data, :contacts) || []
-      contacts.each do |contact|
-        next if contact[:id].blank?
+    return unless provider_config['sync_contacts'].presence || provider_config['sync_full_history'].presence
 
-        create_contact(contact) if jid_user?(contact[:id])
-      end
+    contacts = params.dig(:data, :contacts) || []
+    contacts.each do |contact|
+      create_contact(contact)
     end
 
     return unless provider_config['sync_full_history']
@@ -30,6 +28,19 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     # inbox.channel.fetch_message_history(oldest_message)
   end
 
+  def create_contact(contact)
+    return unless contact[:id].present? && jid_user?(contact[:id])
+
+    phone_number = history_phone_number_from_jid(contact[:id])
+    name = contact[:verifiedName].presence || contact[:notify].presence || contact[:name].presence || phone_number
+    ::ContactInboxWithContactBuilder.new(
+      # FIXME: update the source_id to complete jid in future
+      source_id: phone_number,
+      inbox: inbox,
+      contact_attributes: { name: name, phone_number: "+#{phone_number}" }
+    ).perform
+  end
+
   # TODO: Refactor jid_type method in helpers to receive the jid as an argument and use it here
   def jid_user?(jid)
     server = jid.split('@').last
@@ -39,17 +50,6 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
   # TODO: Refactor this method in helpers to receive the jid as an argument and remove it from here
   def history_phone_number_from_jid(jid)
     jid.split('@').first.split(':').first.split('_').first
-  end
-
-  def create_contact(contact)
-    phone_number = history_phone_number_from_jid(contact[:id])
-    name = contact[:verifiedName].presence || contact[:notify].presence || contact[:name].presence || phone_number
-    ::ContactInboxWithContactBuilder.new(
-      # FIXME: update the source_id to complete jid in future
-      source_id: phone_number,
-      inbox: inbox,
-      contact_attributes: { name: name, phone_number: "+#{phone_number}" }
-    ).perform
   end
 
   def history_handle_message(raw_message) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
