@@ -1,31 +1,27 @@
 module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/ModuleLength
   private
 
-  def process_messaging_history_set # rubocop:disable Metrics/CyclomaticComplexity
+  def process_messaging_history_set
     provider_config = inbox.channel.provider_config
 
     return unless provider_config['sync_contacts'].presence || provider_config['sync_full_history'].presence
 
+    process_contacts(params)
+    process_messages(params) if provider_config['sync_full_history'].presence
+  end
+
+  def process_contacts(params)
     contacts = params.dig(:data, :contacts) || []
     contacts.each do |contact|
       create_contact(contact)
     end
+  end
 
-    return unless provider_config['sync_full_history']
-
-    # oldest_message = nil
+  def process_messages(params)
     messages = params.dig(:data, :messages) || []
     messages.each do |message|
       history_handle_message(message)
-
-      # message_timestamp = baileys_extract_message_timestamp(message[:messageTimestamp])
-      # old_timestamp = baileys_extract_message_timestamp(oldest_message[:messageTimestamp]) if oldest_message
-      # oldest_message = message if oldest_message.nil? || message_timestamp < old_timestamp
     end
-
-    # return if oldest_message.blank? || baileys_extract_message_timestamp(oldest_message[:messageTimestamp]) < 3.months.ago.to_i
-
-    # inbox.channel.fetch_message_history(oldest_message)
   end
 
   def create_contact(contact)
@@ -55,10 +51,10 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
   def history_handle_message(raw_message) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
     return unless raw_message[:key].present? && raw_message[:message].present? && raw_message[:messageTimestamp].present?
 
-    jid = raw_message[:key][:remoteJid]
-    return unless jid_user?(jid)
-
     id = raw_message[:key][:id]
+    jid = raw_message[:key][:remoteJid]
+
+    return unless jid_user?(jid)
     return if history_message_type(raw_message[:message]).in?(%w[protocol context])
     return if history_find_message_by_source_id(id) || history_message_under_process?(id)
 
