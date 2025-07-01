@@ -197,12 +197,4 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
       is_unsupported: history_message_type(raw_message[:message]).in?(%w[image file video audio sticker unsupported]) || nil
     }.compact
   end
-
-  def process_status(status)
-    {
-      'PENDING' => 'sent',
-      'DELIVERY_ACK' => 'delivered',
-      'READ' => 'read'
-    }[status]
-  end
 end
