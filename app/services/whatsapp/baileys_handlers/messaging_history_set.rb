@@ -1,7 +1,7 @@
 module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/ModuleLength
   private
 
-  def process_messaging_history_set # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity,Metrics/AbcSize
+  def process_messaging_history_set # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
     provider_config = inbox.channel.provider_config
 
     if provider_config['sync_contacts'].presence || provider_config['sync_full_history'].presence
@@ -15,14 +15,14 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
 
     return unless provider_config['sync_full_history']
 
-    oldest_message = nil
+    # oldest_message = nil
     messages = params.dig(:data, :messages) || []
     messages.each do |message|
       history_handle_message(message)
 
-      message_timestamp = baileys_extract_message_timestamp(message[:messageTimestamp])
-      old_timestamp = baileys_extract_message_timestamp(oldest_message[:messageTimestamp]) if oldest_message
-      oldest_message = message if oldest_message.nil? || message_timestamp < old_timestamp
+      # message_timestamp = baileys_extract_message_timestamp(message[:messageTimestamp])
+      # old_timestamp = baileys_extract_message_timestamp(oldest_message[:messageTimestamp]) if oldest_message
+      # oldest_message = message if oldest_message.nil? || message_timestamp < old_timestamp
     end
 
     # return if oldest_message.blank? || baileys_extract_message_timestamp(oldest_message[:messageTimestamp]) < 3.months.ago.to_i
