@@ -48,28 +48,38 @@ module Whatsapp::BaileysHandlers::MessagingHistorySet # rubocop:disable Metrics/
     jid.split('@').first.split(':').first.split('_').first
   end
 
-  def history_handle_message(raw_message) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
-    return unless raw_message[:key].present? && raw_message[:message].present? && raw_message[:messageTimestamp].present?
+  def history_handle_message(raw_message)
+    return unless history_message_valid?(raw_message)
 
-    id = raw_message[:key][:id]
-    jid = raw_message[:key][:remoteJid]
-
-    return unless jid_user?(jid)
-    return if history_message_type(raw_message[:message]).in?(%w[protocol context])
-    return if history_find_message_by_source_id(id) || history_message_under_process?(id)
+    id = raw_message.dig(:key, :id)
+    jid = raw_message.dig(:key, :remoteJid)
 
     history_cache_message_source_id_in_redis(id)
-    contact_inbox = find_contact_inbox(jid)
+    begin
+      contact_inbox = find_contact_inbox(jid)
+      unless contact_inbox.contact
+        Rails.logger.warn "Contact not found for message: #{id}"
+        return
+      end
 
-    unless contact_inbox.contact
+      history_create_message(raw_message, contact_inbox)
+    ensure
       history_clear_message_source_id_from_redis(id)
-
-      Rails.logger.warn "Contact not found for message: #{id}"
-      return
     end
+  end
 
-    history_create_message(raw_message, contact_inbox)
-    history_clear_message_source_id_from_redis(id)
+  def history_message_valid?(raw_message) # rubocop:disable Metrics/CyclomaticComplexity
+    id = raw_message.dig(:key, :id)
+    jid = raw_message.dig(:key, :remoteJid)
+
+    id.present? &&
+      jid.present? &&
+      raw_message[:message].present? &&
+      raw_message[:messageTimestamp].present? &&
+      jid_user?(jid) &&
+      !history_message_type(raw_message[:message]).in?(%w[protocol context]) &&
+      !history_find_message_by_source_id(id) &&
+      !history_message_under_process?(id)
   end
 
   # TODO: Refactor this method in helpers to receive the raw message as an argument and remove it from here
