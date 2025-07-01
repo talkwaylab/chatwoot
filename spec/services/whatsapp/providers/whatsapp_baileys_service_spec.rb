@@ -34,6 +34,52 @@ describe Whatsapp::Providers::WhatsappBaileysService do
       end
     end
 
+    context 'when sync_full_history is true' do
+      it 'includes syncFullHistory in the request body' do
+        whatsapp_channel.provider_config['sync_full_history'] = true
+
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+          .with(
+            headers: stub_headers(whatsapp_channel),
+            body: {
+              clientName: 'chatwoot-test',
+              webhookUrl: whatsapp_channel.inbox.callback_webhook_url,
+              webhookVerifyToken: whatsapp_channel.provider_config['webhook_verify_token'],
+              includeMedia: false,
+              syncFullHistory: true
+            }.to_json
+          )
+          .to_return(status: 200)
+
+        response = service.setup_channel_provider
+
+        expect(response).to be(true)
+      end
+    end
+
+    context 'when sync_contacts is true' do
+      it 'includes syncFullHistory in the request body' do
+        whatsapp_channel.provider_config['sync_contacts'] = true
+
+        stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
+          .with(
+            headers: stub_headers(whatsapp_channel),
+            body: {
+              clientName: 'chatwoot-test',
+              webhookUrl: whatsapp_channel.inbox.callback_webhook_url,
+              webhookVerifyToken: whatsapp_channel.provider_config['webhook_verify_token'],
+              includeMedia: false,
+              syncFullHistory: true
+            }.to_json
+          )
+          .to_return(status: 200)
+
+        response = service.setup_channel_provider
+
+        expect(response).to be(true)
+      end
+    end
+
     context 'when response is unsuccessful' do
       it 'logs the error and returns false' do
         stub_request(:post, "#{whatsapp_channel.provider_config['provider_url']}/connections/#{whatsapp_channel.phone_number}")
