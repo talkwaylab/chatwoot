@@ -534,16 +534,27 @@ export default {
 
       if (!this.showRichContentEditor && this.messageSignature) {
         // remove the old signature -> extract text from markdown -> attach new signature
-        let message = removeSignature(this.message, this.messageSignature);
+        const signatureSettings = this.currentUser?.signature_settings || {};
+        let message = removeSignature(
+          this.message,
+          this.messageSignature,
+          signatureSettings
+        );
         message = extractTextFromMarkdown(message);
-        message = appendSignature(message, plainTextSignature);
+        message = appendSignature(
+          message,
+          plainTextSignature,
+          signatureSettings
+        );
 
         this.message = message;
       } else {
+        const signatureSettings = this.currentUser?.signature_settings || {};
         this.message = replaceSignature(
           this.message,
           plainTextSignature,
-          this.messageSignature
+          this.messageSignature,
+          signatureSettings
         );
       }
     },
@@ -583,9 +594,10 @@ export default {
         return message;
       }
 
+      const signatureSettings = this.currentUser?.signature_settings || {};
       return this.sendWithSignature
-        ? appendSignature(message, this.signatureToApply)
-        : removeSignature(message, this.signatureToApply);
+        ? appendSignature(message, this.signatureToApply, signatureSettings)
+        : removeSignature(message, this.signatureToApply, signatureSettings);
     },
     removeFromDraft() {
       if (this.conversationIdByRoute) {
@@ -790,7 +802,12 @@ export default {
         // if signature is enabled, append it to the message
         // appendSignature ensures that the signature is not duplicated
         // so we don't need to check if the signature is already present
-        message = appendSignature(message, this.signatureToApply);
+        const signatureSettings = this.currentUser?.signature_settings || {};
+        message = appendSignature(
+          message,
+          this.signatureToApply,
+          signatureSettings
+        );
       }
 
       const updatedMessage = replaceVariablesInMessage({
@@ -842,7 +859,12 @@ export default {
       this.message = '';
       if (this.sendWithSignature && !this.isPrivate) {
         // if signature is enabled, append it to the message
-        this.message = appendSignature(this.message, this.signatureToApply);
+        const signatureSettings = this.currentUser?.signature_settings || {};
+        this.message = appendSignature(
+          this.message,
+          this.signatureToApply,
+          signatureSettings
+        );
       }
       this.attachedFiles = [];
       this.isRecordingAudio = false;

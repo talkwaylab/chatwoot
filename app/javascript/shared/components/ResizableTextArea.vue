@@ -111,9 +111,19 @@ export default {
     // watcher, this means that if the value is true, the signature
     // is supposed to be added, else we remove it.
     toggleSignatureInEditor(signatureEnabled) {
+      const signatureSettings =
+        this.$store.getters.getCurrentUser?.signature_settings || {};
       const valueWithSignature = signatureEnabled
-        ? appendSignature(this.modelValue, this.cleanedSignature)
-        : removeSignature(this.modelValue, this.cleanedSignature);
+        ? appendSignature(
+            this.modelValue,
+            this.cleanedSignature,
+            signatureSettings
+          )
+        : removeSignature(
+            this.modelValue,
+            this.cleanedSignature,
+            signatureSettings
+          );
 
       this.$emit('update:modelValue', valueWithSignature);
       this.$emit('input', valueWithSignature);
@@ -124,9 +134,12 @@ export default {
       });
     },
     setCursor() {
+      const signatureSettings =
+        this.$store.getters.getCurrentUser?.signature_settings || {};
       const bodyWithoutSignature = removeSignature(
         this.modelValue,
-        this.cleanedSignature
+        this.cleanedSignature,
+        signatureSettings
       );
 
       // only trim at end, so if there are spaces at the start, those are not removed

@@ -57,6 +57,7 @@ export default {
       displayName: '',
       email: '',
       messageSignature: '',
+      signatureSettings: {},
       hotKeys: [
         {
           key: 'enter',
@@ -105,6 +106,7 @@ export default {
       this.avatarUrl = this.currentUser.avatar_url;
       this.displayName = this.currentUser.display_name;
       this.messageSignature = this.currentUser.message_signature;
+      this.signatureSettings = this.currentUser.signature_settings || {};
     },
     async dispatchUpdate(payload, successMessage, errorMessage) {
       let alertMessage = '';
@@ -145,8 +147,14 @@ export default {
 
       if (hasEmailChanged && success) clearCookiesOnLogout();
     },
-    async updateSignature(signature) {
-      const payload = { message_signature: signature };
+    async updateSignature(signature, signatureSettings = {}) {
+      const payload = {
+        message_signature: signature,
+        signature_settings: {
+          position: signatureSettings.position || 'start',
+          separator: signatureSettings.separator || 'new_line',
+        },
+      };
       let successMessage = this.$t(
         'PROFILE_SETTINGS.FORM.MESSAGE_SIGNATURE_SECTION.API_SUCCESS'
       );
@@ -154,7 +162,14 @@ export default {
         'PROFILE_SETTINGS.FORM.MESSAGE_SIGNATURE_SECTION.API_ERROR'
       );
 
-      await this.dispatchUpdate(payload, successMessage, errorMessage);
+      const success = await this.dispatchUpdate(
+        payload,
+        successMessage,
+        errorMessage
+      );
+      if (success) {
+        this.signatureSettings = payload.signature_settings;
+      }
     },
     updateProfilePicture({ file, url }) {
       this.avatarFile = file;
@@ -232,6 +247,7 @@ export default {
     >
       <MessageSignature
         :message-signature="messageSignature"
+        :signature-settings="signatureSettings"
         @update-signature="updateSignature"
       />
     </FormSection>

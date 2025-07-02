@@ -23,6 +23,7 @@
 #  reset_password_sent_at :datetime
 #  reset_password_token   :string
 #  sign_in_count          :integer          default(0), not null
+#  signature_settings     :jsonb
 #  tokens                 :json
 #  type                   :string
 #  ui_settings            :jsonb
@@ -154,6 +155,21 @@ class User < ApplicationRecord
 
   def self.from_email(email)
     find_by(email: email&.downcase)
+  end
+
+  def signature_position
+    signature_settings.fetch('position', 'start')
+  end
+
+  def signature_separator
+    signature_settings.fetch('separator', 'new_line')
+  end
+
+  def signature_settings_with_defaults
+    {
+      'position' => signature_position,
+      'separator' => signature_separator
+    }
   end
 
   private

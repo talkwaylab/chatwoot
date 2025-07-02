@@ -68,20 +68,97 @@ export function findSignatureInBody(body, signature) {
 }
 
 /**
- * Appends the signature to the body, separated by the signature delimiter.
+ * Appends the signature to the body with custom position and separator settings.
  *
  * @param {string} body - The body to append the signature to.
  * @param {string} signature - The signature to append.
+ * @param {Object} settings - The signature settings (position, separator).
  * @returns {string} - The body with the signature appended.
  */
-export function appendSignature(body, signature) {
+export function appendSignatureWithSettings(body, signature, settings = {}) {
+  const position = settings.position || 'end';
+  const separator = settings.separator || 'horizontal_line';
   const cleanedSignature = cleanSignature(signature);
+
   // if signature is already present, return body
   if (findSignatureInBody(body, cleanedSignature) > -1) {
     return body;
   }
 
-  return `${body.trimEnd()}\n\n${appendDelimiter(cleanedSignature)}`;
+  if (position === 'start') {
+    const delimiter =
+      separator === 'horizontal_line'
+        ? `\n\n${SIGNATURE_DELIMITER}\n\n`
+        : '\n\n';
+    return `${cleanedSignature}${delimiter}${body.trimStart()}`;
+  }
+  const delimiter =
+    separator === 'horizontal_line'
+      ? appendDelimiter(cleanedSignature)
+      : `\n\n${cleanedSignature}`;
+  return `${body.trimEnd()}\n\n${delimiter}`;
+}
+
+/**
+ * Appends the signature to the body, separated by the signature delimiter.
+ *
+ * @param {string} body - The body to append the signature to.
+ * @param {string} signature - The signature to append.
+ * @param {Object} settings - The signature settings (position, separator).
+ * @returns {string} - The body with the signature appended.
+ */
+export function appendSignature(body, signature, settings = {}) {
+  return appendSignatureWithSettings(body, signature, settings);
+}
+
+/**
+ * Removes the signature from the body with custom position and separator settings.
+ *
+ * @param {string} body - The body to remove the signature from.
+ * @param {string} signature - The signature to remove.
+ * @param {Object} settings - The signature settings (position, separator).
+ * @returns {string} - The body with the signature removed.
+ */
+export function removeSignatureWithSettings(body, signature, settings = {}) {
+  const position = settings.position || 'end';
+  const separator = settings.separator || 'horizontal_line';
+  const cleanedSignature = cleanSignature(signature);
+  const signatureIndex = findSignatureInBody(body, cleanedSignature);
+
+  let newBody = body;
+
+  if (signatureIndex > -1) {
+    if (position === 'start') {
+      const signatureEndIndex = signatureIndex + cleanedSignature.length;
+      newBody = newBody.substring(signatureEndIndex);
+
+      // Remove delimiter after signature
+      if (separator === 'horizontal_line') {
+        newBody = newBody.replace(/^\n\n--\n\n/, '');
+      } else {
+        newBody = newBody.replace(/^\n\n/, '');
+      }
+
+      newBody = newBody.trimStart();
+    } else {
+      newBody = newBody.substring(0, signatureIndex).trimEnd();
+
+      // Remove delimiter before signature
+      if (separator === 'horizontal_line') {
+        const delimiterIndex = newBody.lastIndexOf(SIGNATURE_DELIMITER);
+        if (
+          delimiterIndex !== -1 &&
+          delimiterIndex === newBody.length - SIGNATURE_DELIMITER.length
+        ) {
+          newBody = newBody.substring(0, delimiterIndex);
+        }
+      }
+
+      newBody = newBody.trimEnd();
+    }
+  }
+
+  return newBody;
 }
 
 /**
@@ -89,36 +166,11 @@ export function appendSignature(body, signature) {
  *
  * @param {string} body - The body to remove the signature from.
  * @param {string} signature - The signature to remove.
+ * @param {Object} settings - The signature settings (position, separator).
  * @returns {string} - The body with the signature removed.
  */
-export function removeSignature(body, signature) {
-  // this will find the index of the signature if it exists
-  // Regardless of extra spaces or new lines after the signature, the index will be the same if present
-  const cleanedSignature = cleanSignature(signature);
-  const signatureIndex = findSignatureInBody(body, cleanedSignature);
-
-  // no need to trim the ends here, because it will simply be removed in the next method
-  let newBody = body;
-
-  // if signature is present, remove it and trim it
-  // trimming will ensure any spaces or new lines before the signature are removed
-  // This means we will have the delimiter at the end
-  if (signatureIndex > -1) {
-    newBody = newBody.substring(0, signatureIndex).trimEnd();
-  }
-
-  // let's find the delimiter and remove it
-  const delimiterIndex = newBody.lastIndexOf(SIGNATURE_DELIMITER);
-  if (
-    delimiterIndex !== -1 &&
-    delimiterIndex === newBody.length - SIGNATURE_DELIMITER.length // this will ensure the delimiter is at the end
-  ) {
-    // if the delimiter is at the end, remove it
-    newBody = newBody.substring(0, delimiterIndex);
-  }
-
-  // return the value
-  return newBody;
+export function removeSignature(body, signature, settings = {}) {
+  return removeSignatureWithSettings(body, signature, settings);
 }
 
 /**
@@ -128,12 +180,22 @@ export function removeSignature(body, signature) {
  * @param {string} body - The body to replace the signature in.
  * @param {string} oldSignature - The signature to replace.
  * @param {string} newSignature - The signature to replace the old signature with.
+ * @param {Object} settings - The signature settings (position, separator).
  * @returns {string} - The body with the old signature replaced with the new signature.
  *
  */
-export function replaceSignature(body, oldSignature, newSignature) {
-  const withoutSignature = removeSignature(body, oldSignature);
-  return appendSignature(withoutSignature, newSignature);
+export function replaceSignature(
+  body,
+  oldSignature,
+  newSignature,
+  settings = {}
+) {
+  const withoutSignature = removeSignatureWithSettings(
+    body,
+    oldSignature,
+    settings
+  );
+  return appendSignatureWithSettings(withoutSignature, newSignature, settings);
 }
 
 /**
