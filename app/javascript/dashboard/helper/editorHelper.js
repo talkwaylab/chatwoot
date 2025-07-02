@@ -23,8 +23,10 @@ export function cleanSignature(signature) {
       .replace(/^( *- *){3,} *$/gm, '')
       .replace(/^( *_ *){3,} *$/gm, '');
 
+    const escapedSignature = signature.replace(/(?<!\*)\*(?!\*)/g, '\\*');
+
     const nodes = new MessageMarkdownTransformer(messageSchema).parse(
-      signature
+      escapedSignature
     );
     return MessageMarkdownSerializer.serialize(nodes);
   } catch (e) {

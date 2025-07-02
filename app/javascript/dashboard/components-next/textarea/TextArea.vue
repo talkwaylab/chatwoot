@@ -66,14 +66,30 @@ const adjustHeight = () => {
 const setCursor = () => {
   if (!textareaRef.value) return;
 
-  const bodyWithoutSignature = removeSignature(
-    props.modelValue,
-    cleanedSignature.value
-  );
-  const bodyEndsAt = bodyWithoutSignature.trimEnd().length;
+  // Get signature settings from store if available
+  const signaturePosition = 'start'; // Default for this component
+  let cursorPosition;
+
+  if (
+    signaturePosition === 'start' &&
+    props.signature &&
+    props.sendWithSignature
+  ) {
+    // Position cursor after signature when signature is at start
+    const signatureLength = cleanedSignature.value.length;
+    const separatorLength = 2; // "\n\n" for new line separator
+    cursorPosition = signatureLength + separatorLength;
+  } else {
+    // Default behavior: position at end of body without signature
+    const bodyWithoutSignature = removeSignature(
+      props.modelValue,
+      cleanedSignature.value
+    );
+    cursorPosition = bodyWithoutSignature.trimEnd().length;
+  }
 
   textareaRef.value.focus();
-  textareaRef.value.setSelectionRange(bodyEndsAt, bodyEndsAt);
+  textareaRef.value.setSelectionRange(cursorPosition, cursorPosition);
 };
 
 const toggleSignatureInEditor = signatureEnabled => {

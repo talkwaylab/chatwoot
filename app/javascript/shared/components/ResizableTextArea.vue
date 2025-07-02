@@ -148,20 +148,29 @@ export default {
           this.$store.getters.getCurrentUser?.ui_settings
             ?.signature_separator || 'new_line',
       };
-      const bodyWithoutSignature = removeSignature(
-        this.modelValue,
-        this.cleanedSignature,
-        signatureSettings
-      );
 
-      // only trim at end, so if there are spaces at the start, those are not removed
-      const bodyEndsAt = bodyWithoutSignature.trimEnd().length;
       const textarea = this.$refs.textarea;
+      if (!textarea) return;
 
-      if (textarea) {
-        textarea.focus();
-        textarea.setSelectionRange(bodyEndsAt, bodyEndsAt);
+      let cursorPosition;
+      if (signatureSettings.position === 'start' && this.cleanedSignature) {
+        // Position cursor after signature when signature is at start
+        const signatureLength = this.cleanedSignature.length;
+        const separatorLength =
+          signatureSettings.separator === 'horizontal_line' ? 6 : 2; // "\n\n--\n\n" vs "\n\n"
+        cursorPosition = signatureLength + separatorLength;
+      } else {
+        // Default behavior: position at end of body without signature
+        const bodyWithoutSignature = removeSignature(
+          this.modelValue,
+          this.cleanedSignature,
+          signatureSettings
+        );
+        cursorPosition = bodyWithoutSignature.trimEnd().length;
       }
+
+      textarea.focus();
+      textarea.setSelectionRange(cursorPosition, cursorPosition);
     },
     onInput(event) {
       this.$emit('update:modelValue', event.target.value);
