@@ -1,28 +1,31 @@
-class Channels::Whatsapp::BaileysMessageRetryJob < ApplicationJob
-  include BaileysHelper
-
+class Channels::Whatsapp::BaileysMessageRetryJob < MutexApplicationJob
   queue_as :high
 
-  retry_on StandardError, wait: :exponentially_longer, attempts: 3
+  retry_on LockAcquisitionError, wait: 3.seconds, attempts: 3
   discard_on ActiveRecord::RecordNotFound
 
-  def perform(message_id, attempt_count = 1)
+  def perform(message_id, is_retry: false)
     message = Message.find(message_id)
     return unless message.conversation.inbox.channel.provider == 'baileys'
 
-    with_baileys_channel_lock_on_outgoing_message(message.conversation.inbox.channel.id) do
-      send_baileys_message(message, attempt_count)
+    channel_id = message.conversation.inbox.channel.id
+    key = format(::Redis::Alfred::BAILEYS_MESSAGE_MUTEX, channel_id: channel_id)
+
+    with_lock(key) do
+      send_baileys_message(message, is_retry)
     end
   rescue Whatsapp::Providers::WhatsappBaileysService::MessageNotSentError => e
-    handle_baileys_send_failure(message, attempt_count, e)
+    handle_baileys_send_failure(message, e, is_retry)
   rescue StandardError => e
     Rails.logger.error "Unexpected error in BaileysMessageRetryJob: #{e.message}"
-    handle_baileys_send_failure(message, attempt_count, e)
+    handle_baileys_send_failure(message, e, is_retry)
   end
 
   private
 
-  def send_baileys_message(message, attempt_count)
+  def send_baileys_message(message, is_retry)
+    attempt_count = get_attempt_count(message, is_retry)
+
     service = Whatsapp::SendOnWhatsappService.new(message: message)
     service.perform
 
@@ -34,7 +37,8 @@ class Channels::Whatsapp::BaileysMessageRetryJob < ApplicationJob
     Rails.logger.info "Baileys message sent successfully on attempt #{attempt_count} for message #{message.id}"
   end
 
-  def handle_baileys_send_failure(message, attempt_count, error)
+  def handle_baileys_send_failure(message, error, is_retry)
+    attempt_count = get_attempt_count(message, is_retry)
     Rails.logger.warn "Baileys message send failed on attempt #{attempt_count} for message #{message.id}: #{error.message}"
 
     message.update!(
@@ -50,7 +54,15 @@ class Channels::Whatsapp::BaileysMessageRetryJob < ApplicationJob
       persist_failed_message_for_redelivery(message)
     else
       retry_delay = calculate_retry_delay(attempt_count)
-      self.class.set(wait: retry_delay).perform_later(message.id, attempt_count + 1)
+      self.class.set(wait: retry_delay).perform_later(message.id, is_retry: true)
+    end
+  end
+
+  def get_attempt_count(message, is_retry)
+    if is_retry
+      (message.additional_attributes['baileys_retry_count'] || 0) + 1
+    else
+      1
     end
   end
 
@@ -68,7 +80,7 @@ class Channels::Whatsapp::BaileysMessageRetryJob < ApplicationJob
       last_error: message.additional_attributes['baileys_last_error']
     }
 
-    Redis::Alfred.lpush(failed_message_key, message_data.to_json)
+    Redis::Alfred.rpush(failed_message_key, message_data.to_json)
     Rails.logger.info "Persisted failed Baileys message #{message.id} for future redelivery"
   end
 end

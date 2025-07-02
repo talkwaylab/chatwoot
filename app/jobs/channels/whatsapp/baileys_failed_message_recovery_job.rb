@@ -18,7 +18,7 @@ class Channels::Whatsapp::BaileysFailedMessageRecoveryJob < ApplicationJob
     processed_count = 0
 
     while processed_count < batch_size
-      message_data_json = Redis::Alfred.rpop(failed_message_key)
+      message_data_json = Redis::Alfred.lpop(failed_message_key)
       break if message_data_json.nil?
 
       begin
@@ -26,7 +26,7 @@ class Channels::Whatsapp::BaileysFailedMessageRecoveryJob < ApplicationJob
         message = Message.find(message_data['message_id'])
 
         delay = rand(1..30).seconds
-        Channels::Whatsapp::BaileysMessageRetryJob.set(wait: delay).perform_later(message.id, 1)
+        Channels::Whatsapp::BaileysMessageRetryJob.set(wait: delay).perform_later(message.id, is_retry: true)
 
         processed_count += 1
         Rails.logger.info "Scheduled recovery retry for Baileys message #{message.id}"

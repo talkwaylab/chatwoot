@@ -34,7 +34,7 @@ class Whatsapp::BaileysRetryMonitorService
   end
 
   def self.get_oldest_failed_message(key)
-    oldest_json = Redis::Alfred.lrange(key, -1, -1).first
+    oldest_json = Redis::Alfred.lrange(key, 0, 0).first
     return nil unless oldest_json
 
     JSON.parse(oldest_json)['failed_at']

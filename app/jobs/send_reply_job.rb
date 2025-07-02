@@ -39,7 +39,7 @@ class SendReplyJob < ApplicationJob
     channel = message.conversation.inbox.channel
 
     if channel.provider == 'baileys'
-      Channels::Whatsapp::BaileysMessageRetryJob.perform_later(message.id)
+      Channels::Whatsapp::BaileysMessageRetryJob.perform_later(message.id, is_retry: false)
     else
       ::Whatsapp::SendOnWhatsappService.new(message: message).perform
     end
