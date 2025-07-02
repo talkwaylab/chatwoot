@@ -534,7 +534,12 @@ export default {
 
       if (!this.showRichContentEditor && this.messageSignature) {
         // remove the old signature -> extract text from markdown -> attach new signature
-        const signatureSettings = this.currentUser?.signature_settings || {};
+        const signatureSettings = {
+          position:
+            this.currentUser?.ui_settings?.signature_position || 'start',
+          separator:
+            this.currentUser?.ui_settings?.signature_separator || 'new_line',
+        };
         let message = removeSignature(
           this.message,
           this.messageSignature,
@@ -549,7 +554,12 @@ export default {
 
         this.message = message;
       } else {
-        const signatureSettings = this.currentUser?.signature_settings || {};
+        const signatureSettings = {
+          position:
+            this.currentUser?.ui_settings?.signature_position || 'start',
+          separator:
+            this.currentUser?.ui_settings?.signature_separator || 'new_line',
+        };
         this.message = replaceSignature(
           this.message,
           plainTextSignature,
@@ -594,7 +604,11 @@ export default {
         return message;
       }
 
-      const signatureSettings = this.currentUser?.signature_settings || {};
+      const signatureSettings = {
+        position: this.currentUser?.ui_settings?.signature_position || 'start',
+        separator:
+          this.currentUser?.ui_settings?.signature_separator || 'new_line',
+      };
       return this.sendWithSignature
         ? appendSignature(message, this.signatureToApply, signatureSettings)
         : removeSignature(message, this.signatureToApply, signatureSettings);
@@ -802,7 +816,12 @@ export default {
         // if signature is enabled, append it to the message
         // appendSignature ensures that the signature is not duplicated
         // so we don't need to check if the signature is already present
-        const signatureSettings = this.currentUser?.signature_settings || {};
+        const signatureSettings = {
+          position:
+            this.currentUser?.ui_settings?.signature_position || 'start',
+          separator:
+            this.currentUser?.ui_settings?.signature_separator || 'new_line',
+        };
         message = appendSignature(
           message,
           this.signatureToApply,
@@ -859,7 +878,12 @@ export default {
       this.message = '';
       if (this.sendWithSignature && !this.isPrivate) {
         // if signature is enabled, append it to the message
-        const signatureSettings = this.currentUser?.signature_settings || {};
+        const signatureSettings = {
+          position:
+            this.currentUser?.ui_settings?.signature_position || 'start',
+          separator:
+            this.currentUser?.ui_settings?.signature_separator || 'new_line',
+        };
         this.message = appendSignature(
           this.message,
           this.signatureToApply,

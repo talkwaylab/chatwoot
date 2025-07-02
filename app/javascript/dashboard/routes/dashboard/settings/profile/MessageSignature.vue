@@ -11,9 +11,13 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  signatureSettings: {
-    type: Object,
-    default: () => ({}),
+  signaturePosition: {
+    type: String,
+    default: 'start',
+  },
+  signatureSeparator: {
+    type: String,
+    default: 'new_line',
   },
 });
 
@@ -24,8 +28,8 @@ const { t } = useI18n();
 const customEditorMenuList = MESSAGE_SIGNATURE_EDITOR_MENU_OPTIONS;
 const signature = ref(props.messageSignature);
 const signatureSettings = ref({
-  position: props.signatureSettings.position || 'start',
-  separator: props.signatureSettings.separator || 'new_line',
+  position: props.signaturePosition,
+  separator: props.signatureSeparator,
 });
 
 const positionOptions = [
@@ -75,22 +79,21 @@ watch(
 );
 
 watch(
-  () => props.signatureSettings,
+  () => props.signaturePosition,
   newValue => {
-    signatureSettings.value = {
-      position: newValue.position || 'start',
-      separator: newValue.separator || 'new_line',
-    };
+    signatureSettings.value.position = newValue;
     selectedPosition.value =
-      positionOptions.find(
-        opt => opt.id === signatureSettings.value.position
-      ) || positionOptions[0];
+      positionOptions.find(opt => opt.id === newValue) || positionOptions[0];
+  }
+);
+
+watch(
+  () => props.signatureSeparator,
+  newValue => {
+    signatureSettings.value.separator = newValue;
     selectedSeparator.value =
-      separatorOptions.find(
-        opt => opt.id === signatureSettings.value.separator
-      ) || separatorOptions[0];
-  },
-  { deep: true }
+      separatorOptions.find(opt => opt.id === newValue) || separatorOptions[0];
+  }
 );
 
 watch(selectedPosition, newValue => {

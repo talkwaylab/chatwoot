@@ -57,7 +57,8 @@ export default {
       displayName: '',
       email: '',
       messageSignature: '',
-      signatureSettings: {},
+      signaturePosition: 'start',
+      signatureSeparator: 'new_line',
       hotKeys: [
         {
           key: 'enter',
@@ -106,7 +107,10 @@ export default {
       this.avatarUrl = this.currentUser.avatar_url;
       this.displayName = this.currentUser.display_name;
       this.messageSignature = this.currentUser.message_signature;
-      this.signatureSettings = this.currentUser.signature_settings || {};
+      this.signaturePosition =
+        this.currentUser.ui_settings?.signature_position || 'start';
+      this.signatureSeparator =
+        this.currentUser.ui_settings?.signature_separator || 'new_line';
     },
     async dispatchUpdate(payload, successMessage, errorMessage) {
       let alertMessage = '';
@@ -150,9 +154,10 @@ export default {
     async updateSignature(signature, signatureSettings = {}) {
       const payload = {
         message_signature: signature,
-        signature_settings: {
-          position: signatureSettings.position || 'start',
-          separator: signatureSettings.separator || 'new_line',
+        ui_settings: {
+          ...this.currentUser.ui_settings,
+          signature_position: signatureSettings.position || 'start',
+          signature_separator: signatureSettings.separator || 'new_line',
         },
       };
       let successMessage = this.$t(
@@ -168,7 +173,8 @@ export default {
         errorMessage
       );
       if (success) {
-        this.signatureSettings = payload.signature_settings;
+        this.signaturePosition = payload.ui_settings.signature_position;
+        this.signatureSeparator = payload.ui_settings.signature_separator;
       }
     },
     updateProfilePicture({ file, url }) {
@@ -247,7 +253,8 @@ export default {
     >
       <MessageSignature
         :message-signature="messageSignature"
-        :signature-settings="signatureSettings"
+        :signature-position="signaturePosition"
+        :signature-separator="signatureSeparator"
         @update-signature="updateSignature"
       />
     </FormSection>

@@ -111,8 +111,14 @@ export default {
     // watcher, this means that if the value is true, the signature
     // is supposed to be added, else we remove it.
     toggleSignatureInEditor(signatureEnabled) {
-      const signatureSettings =
-        this.$store.getters.getCurrentUser?.signature_settings || {};
+      const signatureSettings = {
+        position:
+          this.$store.getters.getCurrentUser?.ui_settings?.signature_position ||
+          'start',
+        separator:
+          this.$store.getters.getCurrentUser?.ui_settings
+            ?.signature_separator || 'new_line',
+      };
       const valueWithSignature = signatureEnabled
         ? appendSignature(
             this.modelValue,
@@ -134,8 +140,14 @@ export default {
       });
     },
     setCursor() {
-      const signatureSettings =
-        this.$store.getters.getCurrentUser?.signature_settings || {};
+      const signatureSettings = {
+        position:
+          this.$store.getters.getCurrentUser?.ui_settings?.signature_position ||
+          'start',
+        separator:
+          this.$store.getters.getCurrentUser?.ui_settings
+            ?.signature_separator || 'new_line',
+      };
       const bodyWithoutSignature = removeSignature(
         this.modelValue,
         this.cleanedSignature,

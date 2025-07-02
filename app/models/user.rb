@@ -158,11 +158,11 @@ class User < ApplicationRecord
   end
 
   def signature_position
-    signature_settings.fetch('position', 'start')
+    ui_settings.fetch('signature_position', 'start')
   end
 
   def signature_separator
-    signature_settings.fetch('separator', 'new_line')
+    ui_settings.fetch('signature_separator', 'new_line')
   end
 
   def signature_settings_with_defaults
