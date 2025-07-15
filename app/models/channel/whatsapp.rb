@@ -68,6 +68,11 @@ class Channel::Whatsapp < ApplicationRecord
     assign_attributes(provider_connection: provider_connection)
     # NOTE: Skip `validate_provider_config?` check
     save!(validate: false)
+
+    # Trigger retry job for failed messages when Baileys connection opens
+    return unless provider == 'baileys' && provider_connection[:connection] == 'open'
+
+    Channels::Whatsapp::RetrySendReplyJob.perform_later(id)
   end
 
   def provider_connection_data

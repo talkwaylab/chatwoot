@@ -72,7 +72,6 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
     end
 
     if channel.setup_channel_provider
-      Channels::Whatsapp::RetrySendReplyJob.perform_later(channel.id) if channel.is_a?(Channel::Whatsapp) && channel.provider == 'baileys'
       head :ok
     else
       render json: { error: 'Channel setup failed' }, status: :unprocessable_entity
