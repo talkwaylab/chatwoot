@@ -6,8 +6,6 @@ class SendReplyJob < ApplicationJob
     conversation = message.conversation
     channel_name = conversation.inbox.channel.class.to_s
 
-    Rails.logger.info "SendReplyJob started for message #{message_id}, channel: #{channel_name}"
-
     services = {
       'Channel::TwitterProfile' => ::Twitter::SendOnTwitterService,
       'Channel::TwilioSms' => ::Twilio::SendOnTwilioService,
