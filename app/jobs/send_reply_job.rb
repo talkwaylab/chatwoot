@@ -1,7 +1,7 @@
 class SendReplyJob < ApplicationJob
   queue_as :high
 
-  discard_on StandardError do |job, error|
+  discard_on CustomExceptions::SendReplyJob::MaxRetriesExceeded do |job, error|
     message_id = job.arguments.first
     message = Message.find_by(id: message_id)
 
