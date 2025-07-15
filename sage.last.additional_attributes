@@ -1,0 +1,22 @@
+=> [32m#<Message:0x00007fa75bdb29a0[0m
+ id: [1;34m12[0m,
+ content: [31m[1;31m"[0m[31mTesting Baileys retry mechanism - this message should use BaileysMessageRetryJob[1;31m"[0m[31m[0m,
+ account_id: [1;34m2[0m,
+ inbox_id: [1;34m2[0m,
+ conversation_id: [1;34m2[0m,
+ message_type: [31m[1;31m"[0m[31moutgoing[1;31m"[0m[31m[0m,
+ created_at: [1;34;4mTue[0m, [1;34m01[0m [1;34;4mJul[0m [1;34m2025[0m [1;34m19[0m:[1;34m33[0m:[1;35m08.120877000[0m [1;34;4mUTC[0m [1;34m+00[0m:[1;34m00[0m,
+ updated_at: [1;34;4mTue[0m, [1;34m01[0m [1;34;4mJul[0m [1;34m2025[0m [1;34m19[0m:[1;34m33[0m:[1;35m23.202048000[0m [1;34;4mUTC[0m [1;34m+00[0m:[1;34m00[0m,
+ private: [1;36mfalse[0m,
+ status: [31m[1;31m"[0m[31msent[1;31m"[0m[31m[0m,
+ source_id: [31m[1;31m"[0m[31m3EB0CA2CF2AD0AC7D95708[1;31m"[0m[31m[0m,
+ content_type: [31m[1;31m"[0m[31mtext[1;31m"[0m[31m[0m,
+ content_attributes: {[31m[1;31m"[0m[31mexternal_created_at[1;31m"[0m[31m[0m => [1;34m1751398403[0m},
+ sender_type: [31m[1;31m"[0m[31mUser[1;31m"[0m[31m[0m,
+ sender_id: [1;34m1[0m,
+ external_source_ids: {},
+ additional_attributes:
+  {[31m[1;31m"[0m[31mbaileys_retry_count[1;31m"[0m[31m[0m => [1;34m1[0m, [31m[1;31m"[0m[31mbaileys_last_attempt_at[1;31m"[0m[31m[0m => [31m[1;31m"[0m[31m2025-07-01T19:33:23.193Z[1;31m"[0m[31m[0m},
+ processed_message_content:
+  [31m[1;31m"[0m[31mTesting Baileys retry mechanism - this message should use BaileysMessageRetryJob[1;31m"[0m[31m[0m,
+ sentiment: {}[32m>[0m
