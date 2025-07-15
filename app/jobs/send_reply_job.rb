@@ -1,13 +1,13 @@
 class SendReplyJob < ApplicationJob
   queue_as :high
 
-  discard_on CustomExceptions::SendReplyJob::MaxRetriesExceeded do |job, error|
+  discard_on Whatsapp::Providers::WhatsappBaileysService::MessageNotSentError do |job, error|
     message_id = job.arguments.first
     message = Message.find_by(id: message_id)
 
     if message
       message.update!(status: :failed)
-      Rails.logger.error "SendReplyJob discarded after 3 attempts for message #{message_id}: #{error.message}"
+      Rails.logger.error "SendReplyJob discarded for Baileys message #{message_id}: #{error.message}"
     end
   end
 
