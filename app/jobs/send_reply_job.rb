@@ -1,6 +1,16 @@
 class SendReplyJob < ApplicationJob
   queue_as :high
 
+  discard_on StandardError do |job, error|
+    message_id = job.arguments.first
+    message = Message.find_by(id: message_id)
+
+    if message
+      message.update!(status: :failed)
+      Rails.logger.error "SendReplyJob discarded after 3 attempts for message #{message_id}: #{error.message}"
+    end
+  end
+
   def perform(message_id)
     message = Message.find(message_id)
     conversation = message.conversation
