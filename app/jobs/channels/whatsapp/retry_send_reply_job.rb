@@ -11,7 +11,7 @@ class Channels::Whatsapp::RetrySendReplyJob < ApplicationJob
     Rails.logger.info "Processing #{failed_messages.count} failed messages for Baileys channel #{channel_id}"
 
     failed_messages.each do |message|
-      process_message_batch(message)
+      process_message(message)
 
       sleep(10) unless message == failed_messages.last
     end
@@ -29,9 +29,7 @@ class Channels::Whatsapp::RetrySendReplyJob < ApplicationJob
            .order(:created_at)
   end
 
-  def process_message_batch(message)
-    message.update!(status: :sent)
-
+  def process_message(message)
     SendReplyJob.perform_later(message.id)
 
     Rails.logger.info "Scheduled retry for failed message #{message.id}"
