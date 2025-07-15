@@ -23,7 +23,7 @@ class Channels::Whatsapp::RetrySendReplyJob < ApplicationJob
     Message.joins(:conversation)
            .joins('JOIN inboxes ON conversations.inbox_id = inboxes.id')
            .where(inboxes: { channel: channel })
-           .where(status: :failed)
+           .where(status: :sent)
            .where('messages.created_at > ?', 24.hours.ago)
            .where(message_type: :outgoing)
            .order(:created_at)
