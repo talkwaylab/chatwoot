@@ -234,6 +234,9 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
     update_external_created_at(response)
     response.parsed_response.dig('data', 'key', 'id')
+  rescue HTTParty::Error, Timeout::Error, Errno::ECONNREFUSED, SocketError => e
+    Rails.logger.error "Baileys API connection error: #{e.message}"
+    raise MessageNotSentError, "Baileys API connection failed: #{e.message}"
   end
 
   def process_response(response)
