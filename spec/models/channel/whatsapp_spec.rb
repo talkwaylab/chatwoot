@@ -62,6 +62,41 @@ RSpec.describe Channel::Whatsapp do
     end
   end
 
+  describe '#update_provider_connection!' do
+    let(:channel) { create(:channel_whatsapp, provider: 'baileys', validate_provider_config: false, sync_templates: false) }
+
+    context 'when provider is baileys' do
+      it 'updates provider_connection' do
+        connection_params = { connection: 'closed', qr_data_url: 'new_qr_code' }
+        channel.update_provider_connection!(connection_params)
+        expect(channel.reload.provider_connection['connection']).to eq('closed')
+        expect(channel.reload.provider_connection['qr_data_url']).to eq('new_qr_code')
+      end
+
+      it 'enqueues RetrySendReplyJob when connection is open' do
+        connection_params = { connection: 'open' }
+        expect(Channels::Whatsapp::RetrySendReplyJob).to receive(:perform_later).with(channel.id)
+        channel.update_provider_connection!(connection_params)
+      end
+
+      it 'does not enqueue RetrySendReplyJob when connection is not open' do
+        connection_params = { connection: 'closed' }
+        expect(Channels::Whatsapp::RetrySendReplyJob).not_to receive(:perform_later)
+        channel.update_provider_connection!(connection_params)
+      end
+    end
+
+    context 'when provider is not baileys' do
+      let(:non_baileys_channel) { create(:channel_whatsapp, provider: 'whatsapp_cloud', validate_provider_config: false, sync_templates: false) }
+
+      it 'does not enqueue RetrySendReplyJob even when connection is open' do
+        connection_params = { connection: 'open' }
+        expect(Channels::Whatsapp::RetrySendReplyJob).not_to receive(:perform_later)
+        non_baileys_channel.update_provider_connection!(connection_params)
+      end
+    end
+  end
+
   describe '#toggle_typing_status' do
     let(:channel) { create(:channel_whatsapp, provider: 'baileys', validate_provider_config: false, sync_templates: false) }
     let(:conversation) { create(:conversation) }
