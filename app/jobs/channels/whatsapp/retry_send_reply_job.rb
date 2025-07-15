@@ -11,7 +11,7 @@ class Channels::Whatsapp::RetrySendReplyJob < ApplicationJob
     Rails.logger.info "Processing #{failed_messages.count} failed messages for Baileys channel #{channel_id}"
 
     failed_messages.each do |message|
-      process_message(message)
+      process_message_batch(message)
 
       sleep(10) unless message == failed_messages.last
     end
