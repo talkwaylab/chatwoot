@@ -31,8 +31,6 @@ class Channels::Whatsapp::RetrySendReplyJob < ApplicationJob
 
   def process_message(message)
     SendReplyJob.perform_later(message.id)
-
-    Rails.logger.info "Scheduled retry for failed message #{message.id}"
   rescue StandardError => e
     Rails.logger.error "Error processing failed message #{message.id}: #{e.message}"
     message.update!(status: :failed)
