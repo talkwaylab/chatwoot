@@ -178,6 +178,13 @@ describe Whatsapp::SendOnWhatsappService do
 
         expect(message.reload.source_id).to eq('123456789')
       end
+
+      it 'does not call channel.send_message if message already has a source_id' do
+        message = create(:message, message_type: :outgoing, content: 'test', conversation: conversation, source_id: 'some_existing_id')
+        expect(whatsapp_channel).not_to receive(:send_message)
+
+        described_class.new(message: message).perform
+      end
     end
   end
 end
