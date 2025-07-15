@@ -1,7 +1,7 @@
 class SendReplyJob < ApplicationJob
   queue_as :high
 
-  retry_on Whatsapp::Providers::WhatsappBaileysService::MessageNotSentError, attempts: 3, wait: :exponentially_longer do |job, error|
+  retry_on Whatsapp::Providers::WhatsappBaileysService::MessageNotSentError, attempts: 3, wait: :polynomially_longer do |job, error|
     message_id = job.arguments.first
     message = Message.find_by(id: message_id)
 
