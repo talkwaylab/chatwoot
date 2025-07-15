@@ -7,7 +7,7 @@ class SendReplyJob < ApplicationJob
 
     if message
       message.update!(status: :failed)
-      Rails.logger.error "SendReplyJob discarded for Baileys message #{message_id}: #{error.message}"
+      Rails.logger.error "SendReplyJob discarded after 3 attempts for message #{message_id}: #{error.message}"
     end
   end
 
@@ -15,6 +15,8 @@ class SendReplyJob < ApplicationJob
     message = Message.find(message_id)
     conversation = message.conversation
     channel_name = conversation.inbox.channel.class.to_s
+
+    Rails.logger.info "SendReplyJob started for message #{message_id}, channel: #{channel_name}"
 
     services = {
       'Channel::TwitterProfile' => ::Twitter::SendOnTwitterService,
