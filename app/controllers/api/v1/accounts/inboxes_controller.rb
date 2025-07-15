@@ -71,11 +71,8 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
       render json: { error: 'Channel does not support setup' }, status: :unprocessable_entity and return
     end
 
-    if channel.setup_channel_provider
-      head :ok
-    else
-      render json: { error: 'Channel setup failed' }, status: :unprocessable_entity
-    end
+    channel.setup_channel_provider
+    head :ok
   end
 
   def disconnect_channel_provider
