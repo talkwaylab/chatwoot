@@ -1,5 +1,5 @@
 class Channels::Whatsapp::RetrySendReplyJob < ApplicationJob
-  queue_as :low
+  queue_as :high
 
   def perform(channel_id)
     channel = Channel::Whatsapp.find(channel_id)
@@ -10,10 +10,10 @@ class Channels::Whatsapp::RetrySendReplyJob < ApplicationJob
 
     Rails.logger.info "Processing #{failed_messages.count} failed messages for Baileys channel #{channel_id}"
 
-    failed_messages.in_batches(of: 10).with_index do |batch, _index|
-      process_message_batch(batch)
+    failed_messages.each do |message|
+      process_message(message)
 
-      sleep(60) unless batch.last == failed_messages.last
+      sleep(10) unless message == failed_messages.last
     end
   end
 
@@ -29,16 +29,14 @@ class Channels::Whatsapp::RetrySendReplyJob < ApplicationJob
            .order(:created_at)
   end
 
-  def process_message_batch(messages)
-    messages.each do |message|
-      message.update!(status: :sent)
+  def process_message_batch(message)
+    message.update!(status: :sent)
 
-      SendReplyJob.perform_later(message.id)
+    SendReplyJob.perform_later(message.id)
 
-      Rails.logger.info "Scheduled retry for failed message #{message.id}"
-    rescue StandardError => e
-      Rails.logger.error "Error processing failed message #{message.id}: #{e.message}"
-      message.update!(status: :failed)
-    end
+    Rails.logger.info "Scheduled retry for failed message #{message.id}"
+  rescue StandardError => e
+    Rails.logger.error "Error processing failed message #{message.id}: #{e.message}"
+    message.update!(status: :failed)
   end
 end
